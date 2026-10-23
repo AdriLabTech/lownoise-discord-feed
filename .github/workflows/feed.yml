@@ -1,0 +1,39 @@
+name: Avisos de YouTube a Discord
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: feed
+  cancel-in-progress: false
+
+jobs:
+  feed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publicar vídeos nuevos
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          YOUTUBE_CHANNEL_ID: UCEI_tlLx1YTscFkO0Uh8uuQ
+          ROLE_ID: "1563316676970156133"
+          AVATAR_URL: https://raw.githubusercontent.com/${{ github.repository }}/main/assets/avatar.jpg
+        run: python3 feed.py
+      - name: Guardar estado y mantener el cron activo
+        run: |
+          git config user.name "lownoise-feed"
+          git config user.email "lownoise-feed@users.noreply.github.com"
+          if ! git diff --quiet state.json; then
+            git add state.json
+            git commit -m "estado: vídeos publicados"
+          elif [ $(( $(date +%s) - $(git log -1 --format=%ct) )) -gt $(( 30*24*3600 )) ]; then
+            # GitHub desactiva los cron de repos públicos sin actividad en 60 días
+            git commit --allow-empty -m "mantener activo el cron"
+          fi
+          git push || true
