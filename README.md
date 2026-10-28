@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/hero.svg" alt="lownoise-discord-feed" width="100%"></p>
+
 # lownoise-discord-feed
 
 Publica en el Discord de Low Noise cada vídeo y Short nuevo del canal de YouTube, sin servidor propio.
